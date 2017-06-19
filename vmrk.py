@@ -143,12 +143,14 @@ def process_trial(qu, block):
 
     # ky is the stimulus and response type
     code = Code.fromSRCodes(qu[1].srcode, qu[2].srcode)
+    logging.info("Debug Info: %s" % code)
 
     # Response time for first response, multiplication by 2 is a scale
     # conversion.
     rt = 2 * (qu[2].time - qu[1].time)
     block.Code.append(code)
     block.Rtim.append(rt)
+    logging.info("Debug Info: %s" % qu[1].time)
     block.Ntri.append(len(qu))
 
     block.filter_outliers(low, high)
@@ -391,23 +393,25 @@ def process_vmrk(filename):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) == 1:
-        print("no files")
-        sys.exit(0)
-
     import csv
 
     logging.basicConfig(filename="vmrk.log", level=logging.DEBUG)
 
     results = []
-    for i, fname in enumerate(sys.argv[1:]):
+    # Run all .vmrk files found in the current directory
+    vmrk_files = []
+    for file in os.listdir('.'):
+        if file.find('.vmrk') > 0:
+            vmrk_files.append(file)
 
+    for i, fname in enumerate(vmrk_files):
         data = process_vmrk(fname)
         result = summarize_vmrk(fname, data)
 
         if i == 0:
-            wtr = csv.writer(sys.stdout)
+            wtr = csv.writer(sys.stdout, lineterminator='\n')
             header = [k for k in result]
             wtr.writerow(header)
 
         wtr.writerow([result[k] for k in result])
+
